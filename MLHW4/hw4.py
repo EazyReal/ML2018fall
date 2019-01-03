@@ -20,9 +20,9 @@ def forward_propagate(X, theta1, theta2):
     #Write codes here
     #np.array([np.dot(np.array(w), X[i]) for i in range(m)])
     #z = a*w.transpose()
-    a1 = np.c_[X, np.ones(m)] #add an 1 to Xi, type = matrix
+    a1 = np.c_[np.ones(m), X] #add an 1 to Xi(first column), type = matrix
     z2 = a1 * theta1.transpose() #m*i * i*o = m*o
-    a2 = np.c_[sigmoid(z2), np.ones(m)] 
+    a2 = np.c_[np.ones(m), sigmoid(z2)] 
     z3 = a2 * theta2.transpose()
     h =  sigmoid(z3)
     
@@ -46,6 +46,7 @@ def cost(params, input_size, hidden_size, num_labels, X, y, learning_rate):
         
     J = J / m
     J += (float(learning_rate) / (2*m) * (np.sum(np.power(theta1[:,1:], 2)) + np.sum(np.power(theta2[:,1:]))))
+    #no need to regularized thetak[:][0] (bias term)
     
     return J
     
