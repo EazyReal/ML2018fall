@@ -3,6 +3,15 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from scipy.io import loadmat
 
+#ML2018fall @ NCTU HW4 code
+#developped on MacOS/Windows10
+#author : maxwill lin 0712238
+#version control with git/github
+#tool used : jupyter notebook
+#programming language : python3.7
+#https://github.com/EazyReal/ML2018fall/blob/master/MLHW4/hw4.py
+
+
 #Be careful with the file path!
 data = loadmat('data/hw4.mat')
 from sklearn.preprocessing import OneHotEncoder
@@ -56,6 +65,7 @@ hidden_size = 10
 num_labels = 10
 learning_rate = 1
 lambda_ = 0.01
+#lambda=0.01/m => 96%up accuracy
 # randomly initialize a parameter array of the size of the full network's parameters
 params = (np.random.random(size=hidden_size * (input_size + 1) + num_labels * (hidden_size + 1)) - 0.5) * 0.2
 m = data['X'].shape[0]
@@ -84,23 +94,21 @@ def backprop(params, input_size, hidden_size, num_labels, X, y, learning_rate):
 
     #calculate delta
     delta3 = h-y #(m, nlab)
+    #delta3 = np.multiply(delta3, sigmoid_gradient(z3))
     delta2 = np.multiply(delta3*theta2[:,1:], sigmoid_gradient(z2))#(m,n) * (n,hidden+1) (5000*10**10*11)
-    ###
-    delta3 = np.multiply(delta3, sigmoid_gradient(z3))
 
-    d_b2 = (np.sum(delta3, axis=0)/m).transpose()
-    d_b1 = (np.sum(delta2, axis=0)/m).transpose()
-    d_w2 = np.dot(delta3.transpose(), z2)/m + lambda_*theta2[:,1:]
-    d_w1 = np.dot(delta2.transpose(), X)/m + lambda_*theta1[:,1:]
-    
-    d_t1 = np.array(np.c_[d_b1, d_w1])
-    d_t2 = np.array(np.c_[d_b2, d_w2])
-    grad = np.c_[d_t1, d_t2].flatten()
-
-    #for t in range(m):
-    #	xt = np.matrix(X[t])
+    d_b2 = (np.sum(delta3, axis=0)/m).transpose() #10*1
+    d_b1 = (np.sum(delta2, axis=0)/m).transpose() #10*1
+    #print(a2.shape) 5000*11
+    d_w2 = np.dot(delta3.transpose(), a2[:,1:])/m + lambda_/m*theta2[:,1:] #10*10
+    d_w1 = np.dot(delta2.transpose(), X)/m + lambda_/m*theta1[:,1:] #10*400
+    d_t1 = np.array(np.c_[d_b1, d_w1]).flatten()
+    d_t2 = np.array(np.c_[d_b2, d_w2]).flatten()
+    grad = np.concatenate((d_t1, d_t2))
+    #grad = np.c_[d_t1, d_t2].flatten() lead to bug
 
     return J, grad
+
     
 from scipy.optimize import minimize
 # minimize the objective function
