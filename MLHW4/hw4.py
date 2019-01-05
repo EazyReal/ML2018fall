@@ -45,7 +45,7 @@ def cost(params, input_size, hidden_size, num_labels, X, y, learning_rate):
         J += np.sum(first_term - second_term)
         
     J = J / m
-    J += (float(learning_rate) / (2*m) * (np.sum(np.power(theta1[:,1:], 2)) + np.sum(np.power(theta2[:,1:]))))
+    J += (float(learning_rate) / (2*m) * (np.sum(np.power(theta1[:,1:], 2)) + np.sum(np.power(theta2[:,1:], 2))))
     #no need to regularized thetak[:][0] (bias term)
     
     return J
@@ -55,6 +55,7 @@ input_size = 400
 hidden_size = 10
 num_labels = 10
 learning_rate = 1
+lambda_ = 0.01
 # randomly initialize a parameter array of the size of the full network's parameters
 params = (np.random.random(size=hidden_size * (input_size + 1) + num_labels * (hidden_size + 1)) - 0.5) * 0.2
 m = data['X'].shape[0]
@@ -70,10 +71,35 @@ def sigmoid_gradient(z):
     return np.multiply(sigmoid(z), (1 - sigmoid(z)))    
 
 def backprop(params, input_size, hidden_size, num_labels, X, y, learning_rate):
-    m = X.shape[0]
+    m = X.shape[0] #size
    
     #Write codes here
+    #J = 0.0
+    #grad = grad of each theta(i,j) init= np.zeros(params.shape)
+
+    theta1 = np.matrix(np.reshape(params[:hidden_size * (input_size + 1)], (hidden_size, (input_size + 1))))
+    theta2 = np.matrix(np.reshape(params[hidden_size * (input_size + 1):], (num_labels, (hidden_size + 1))))
+    a1, z2, a2, z3, h = forward_propagate(X, theta1, theta2)
+    J = cost(params, input_size, hidden_size, num_labels, X, y, learning_rate)
+
+    #calculate delta
+    delta3 = h-y #(m, nlab)
+    delta2 = np.multiply(delta3*theta2[:,1:], sigmoid_gradient(z2))#(m,n) * (n,hidden+1) (5000*10**10*11)
+    ###
+    delta3 = np.multiply(delta3, sigmoid_gradient(z3))
+
+    d_b2 = (np.sum(delta3, axis=0)/m).transpose()
+    d_b1 = (np.sum(delta2, axis=0)/m).transpose()
+    d_w2 = np.dot(delta3.transpose(), z2)/m + lambda_*theta2[:,1:]
+    d_w1 = np.dot(delta2.transpose(), X)/m + lambda_*theta1[:,1:]
     
+    d_t1 = np.array(np.c_[d_b1, d_w1])
+    d_t2 = np.array(np.c_[d_b2, d_w2])
+    grad = np.c_[d_t1, d_t2].flatten()
+
+    #for t in range(m):
+    #	xt = np.matrix(X[t])
+
     return J, grad
     
 from scipy.optimize import minimize
